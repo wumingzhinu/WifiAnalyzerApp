@@ -1,19 +1,176 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:background="#FF0D1117" android:padding="20dp">
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="WiFi抓包分析器" android:textSize="28sp" android:textColor="#FFE6EDF3"
-        android:textStyle="bold" android:gravity="center" android:layout_marginTop="40dp" android:layout_marginBottom="32dp"/>
-    <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectFile"
-        android:layout_width="match_parent" android:layout_height="64dp" android:text="选择文件" android:layout_marginBottom="12dp"/>
-    <TextView android:id="@+id/tvSelectedFile" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="支持: pcap, cap, pcapng, hccap, hccapx, pmkid, hc22000" android:textSize="12sp" android:textColor="#FF8B949E" android:gravity="center" android:padding="12dp"/>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnViewFile"
-            android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1" android:layout_marginEnd="8dp" android:text="查看" android:enabled="false"/>
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnConvert"
-            android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1" android:layout_marginStart="8dp" android:text="转换" android:enabled="false"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FF0D1117">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingTop="48dp"
+        android:paddingBottom="32dp">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@android:drawable/ic_menu_search"
+            android:tint="#FF58A6FF"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WiFi 握手包分析器"
+            android:textSize="24sp"
+            android:textColor="#FFE6EDF3"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Handshake Analyzer"
+            android:textSize="12sp"
+            android:textColor="#FF8B949E"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FF21262D"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="选择抓包文件"
+                    android:textSize="14sp"
+                    android:textColor="#FF8B949E"
+                    android:layout_marginBottom="12dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSelectFile"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:text="选择文件"
+                    android:textAllCaps="false"
+                    app:backgroundTint="#FF1F6FEB"
+                    app:cornerRadius="8dp" />
+
+                <TextView
+                    android:id="@+id/tvSelectedFile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="支持 pcap / cap / pcapng / hccapx / pmkid / 22000"
+                    android:textSize="11sp"
+                    android:textColor="#FF484F58"
+                    android:gravity="center"
+                    android:layout_marginTop="12dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewFile"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="查看握手包"
+                android:textAllCaps="false"
+                android:enabled="false"
+                app:backgroundTint="#FF238636"
+                app:cornerRadius="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConvert"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="格式转换"
+                android:textAllCaps="false"
+                android:enabled="false"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#FF58A6FF"
+                android:textColor="#FF58A6FF"
+                app:cornerRadius="8dp" />
+        </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardConvert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FF21262D"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="转换格式"
+                    android:textSize="14sp"
+                    android:textColor="#FF8B949E"
+                    android:layout_marginBottom="12dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:background="#FF30363D"
+                    android:paddingHorizontal="12dp"
+                    android:layout_marginBottom="12dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStartConvert"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="开始转换"
+                    android:textAllCaps="false"
+                    app:backgroundTint="#FF1F6FEB"
+                    app:cornerRadius="8dp" />
+
+                <TextView
+                    android:id="@+id/tvConvertResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:textSize="11sp"
+                    android:textColor="#FF3FB950"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </LinearLayout>

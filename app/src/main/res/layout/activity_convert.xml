@@ -1,11 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="#FF0D1117" android:padding="16dp">
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="有损转换" android:textSize="18sp" android:textColor="#FFFF5722" android:textStyle="bold" android:layout_marginBottom="16dp"/>
-    <TextView android:id="@+id/tvSourceFormat" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:background="#FF21262D" android:textColor="#FFE6EDF3" android:layout_marginBottom="16dp"/>
-    <Spinner android:id="@+id/spinnerTargetFormat" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginBottom="16dp"/>
-    <com.google.android.material.button.MaterialButton android:id="@+id/btnConvert" android:layout_width="match_parent" android:layout_height="56dp" android:text="开始转换"/>
-    <com.google.android.material.card.MaterialCardView android:id="@+id/cardResult" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:visibility="gone">
-        <TextView android:id="@+id/tvConvertResult" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp"/>
-    </com.google.android.material.card.MaterialCardView>
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FF0D1117">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="#FF21262D">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="返回"
+            app:tint="#FFE6EDF3" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="格式转换"
+            android:textSize="18sp"
+            android:textColor="#FFE6EDF3"
+            android:textStyle="bold"
+            android:layout_marginStart="12dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FF21262D"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="源文件信息"
+                    android:textSize="12sp"
+                    android:textColor="#FF8B949E"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvSourceInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFE6EDF3"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FF21262D"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="目标格式"
+                    android:textSize="12sp"
+                    android:textColor="#FF8B949E"
+                    android:layout_marginBottom="8dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="#FF30363D"
+                    android:paddingHorizontal="12dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStartConvert"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="开始转换"
+            android:textAllCaps="false"
+            app:backgroundTint="#FF1F6FEB"
+            app:cornerRadius="8dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tvConvertResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:textColor="#FF3FB950"
+            android:background="#FF161B22"
+            android:padding="12dp"
+            android:visibility="gone" />
+    </LinearLayout>
 </LinearLayout>

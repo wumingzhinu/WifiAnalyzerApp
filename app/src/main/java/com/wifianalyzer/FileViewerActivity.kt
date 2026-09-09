@@ -21,6 +21,8 @@ class FileViewerActivity : AppCompatActivity() {
         binding = ActivityFileViewerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.btnBack.setOnClickListener { finish() }
+
         val fileData = intent.getByteArrayExtra("FILE_DATA") ?: run { finish(); return }
         val fileName = intent.getStringExtra("FILE_NAME") ?: "unknown"
         val parser = FileParser()
