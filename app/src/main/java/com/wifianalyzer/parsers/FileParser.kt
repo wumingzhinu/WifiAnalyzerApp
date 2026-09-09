@@ -38,6 +38,7 @@ data class PacketInfo(
     val rawData: String
 ) : Parcelable
 
+@Parcelize
 data class FileAnalysis(
     val fileType: FileType,
     val fileName: String,
@@ -46,7 +47,7 @@ data class FileAnalysis(
     val handshakes: List<HandshakeInfo>,
     val packets: List<PacketInfo>,
     val rawHex: String
-)
+) : Parcelable
 
 @Parcelize
 data class AiReport(
