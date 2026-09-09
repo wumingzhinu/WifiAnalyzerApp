@@ -112,12 +112,22 @@ class ToolExecutor(private val context: Context) {
     }
 
     fun getToolPath(toolName: String): String? {
-        val paths = listOf(
-            context.filesDir.absolutePath + "/tools/$toolName",
-            "/data/data/com.termux/files/usr/bin/$toolName",
-            "/system/bin/$toolName",
-            "/system/xbin/$toolName"
-        )
-        return paths.firstOrNull { File(it).exists() }
+        // 1. 检查 app 私有目录
+        val appPath = context.filesDir.absolutePath + "/tools/$toolName"
+        if (File(appPath).exists()) return appPath
+
+        // 2. 从 assets 释放
+        val extracted = extractBinary(toolName, toolName)
+        if (extracted != null) return extracted
+
+        // 3. 检查 Termux
+        val termuxPath = "/data/data/com.termux/files/usr/bin/$toolName"
+        if (File(termuxPath).exists()) return termuxPath
+
+        // 4. 检查系统
+        val sysPath = "/system/bin/$toolName"
+        if (File(sysPath).exists()) return sysPath
+
+        return null
     }
 }
