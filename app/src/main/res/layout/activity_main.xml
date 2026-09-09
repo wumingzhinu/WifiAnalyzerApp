@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#FF0D1117" android:padding="20dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="WiFi抓包分析器" android:textSize="28sp" android:textColor="#FFE6EDF3"
+        android:textStyle="bold" android:gravity="center" android:layout_marginTop="40dp" android:layout_marginBottom="32dp"/>
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectFile"
+        android:layout_width="match_parent" android:layout_height="64dp" android:text="📂 选择文件" android:layout_marginBottom="12dp"/>
+    <TextView android:id="@+id/tvSelectedFile" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="支持: pcap, cap, pcapng, hccap, hccapx, pmkid, hc22000" android:textSize="12sp" android:textColor="#FF8B949E" android:gravity="center" android:padding="12dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnViewFile"
+            android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1" android:layout_marginEnd="8dp" android:text="🔍 查看" android:enabled="false"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnConvert"
+            android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1" android:layout_marginStart="8dp" android:text="🔄 转换" android:enabled="false"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+    </LinearLayout>
+</LinearLayout>
