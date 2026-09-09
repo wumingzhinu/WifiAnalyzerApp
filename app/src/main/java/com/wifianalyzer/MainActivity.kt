@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.wifianalyzer.databinding.ActivityMainBinding
 import com.wifianalyzer.parsers.FileParser
-import com.wifianalyzer.tools.ToolsActivity
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -40,10 +39,6 @@ class MainActivity : AppCompatActivity() {
                     putExtra("FILE_DATA", data); putExtra("FILE_NAME", fileName)
                 })
             }
-        }
-
-        binding.btnTools.setOnClickListener {
-            startActivity(Intent(this, ToolsActivity::class.java))
         }
     }
 

@@ -8,8 +8,10 @@ import com.wifianalyzer.databinding.ActivityFileViewerBinding
 import com.wifianalyzer.parsers.AiAnalyzer
 import com.wifianalyzer.parsers.FileParser
 import com.wifianalyzer.ui.AiAnalysisFragment
-import com.wifianalyzer.ui.HexViewFragment
 import com.wifianalyzer.ui.HandshakeInfoFragment
+import com.wifianalyzer.ui.HexViewFragment
+import com.wifianalyzer.ui.ToolOutputFragment
+import java.io.File
 
 class FileViewerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityFileViewerBinding
@@ -27,18 +29,23 @@ class FileViewerActivity : AppCompatActivity() {
 
         binding.tvFileInfo.text = "${analysis.fileName} | ${analysis.fileSize} bytes | ${analysis.fileType}"
 
+        val tmpFile = File(cacheDir, "current_capture.${analysis.fileType.name.lowercase()}")
+        tmpFile.writeBytes(fileData)
+
         binding.viewPager.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
-            override fun getItemCount() = 3
+            override fun getItemCount() = 4
             override fun createFragment(pos: Int): Fragment = when (pos) {
                 0 -> HandshakeInfoFragment.newInstance(analysis)
-                1 -> HexViewFragment.newInstance(analysis.rawHex.toByteArray())
+                1 -> ToolOutputFragment.newInstance(tmpFile.absolutePath)
+                2 -> HexViewFragment.newInstance(analysis.rawHex.toByteArray())
                 else -> AiAnalysisFragment.newInstance(aiReport)
             }
         }
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
             tab.text = when (pos) {
                 0 -> "握手包信息"
-                1 -> "原始内容"
+                1 -> "工具输出"
+                2 -> "原始内容"
                 else -> "AI分析"
             }
         }.attach()
