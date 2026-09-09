@@ -8,3 +8,4 @@ app/build/
 *.keystore
 apk.zip
 apk_extracted/
+apk_out/
