@@ -8,8 +8,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="安全工具"
-        android:textSize="24sp"
+        android:text="查看握手包"
+        android:textSize="22sp"
         android:textColor="#FFE6EDF3"
         android:textStyle="bold"
         android:padding="20dp"
@@ -18,14 +18,86 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:id="@+id/toolContainer" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Aircrack-ng"
+                android:textSize="16sp"
+                android:textColor="#FF58A6FF"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvAircrackStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/btnAircrackView"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="查看握手包 (aircrack-ng -a 2)"
+                android:textSize="14sp"
+                android:backgroundTint="#FF30363D"
+                android:textColor="#FF58A6FF"
+                android:layout_marginBottom="20dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="HCXpcapngtool (hcxtools)"
+                android:textSize="16sp"
+                android:textColor="#FF58A6FF"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvHcxStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/btnHcxpcapngtoolView"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="查看握手包详情"
+                android:textSize="14sp"
+                android:backgroundTint="#FF30363D"
+                android:textColor="#FF58A6FF"
+                android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/btnHcxpcapngtoolInfo"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="显示完整信息 (--all)"
+                android:textSize="14sp"
+                android:backgroundTint="#FF30363D"
+                android:textColor="#FF58A6FF"
+                android:layout_marginBottom="20dp" />
+
+            <Button
+                android:id="@+id/btnCustomCmd"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="自定义命令"
+                android:textSize="14sp"
+                android:backgroundTint="#FF30363D"
+                android:textColor="#FF8B949E" />
+
+        </LinearLayout>
     </ScrollView>
 
     <LinearLayout
@@ -54,7 +126,7 @@
         <ScrollView
             android:id="@+id/scrollView"
             android:layout_width="match_parent"
-            android:layout_height="200dp">
+            android:layout_height="220dp">
 
             <TextView
                 android:id="@+id/tvOutput"
@@ -63,8 +135,7 @@
                 android:fontFamily="monospace"
                 android:textSize="11sp"
                 android:textColor="#FF58A6FF"
-                android:padding="8dp"
-                android:text="准备就绪\n" />
+                android:padding="8dp" />
         </ScrollView>
     </LinearLayout>
 </LinearLayout>
