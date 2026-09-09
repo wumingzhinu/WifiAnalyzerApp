@@ -39,7 +39,7 @@ class FileViewerActivity : AppCompatActivity() {
                 ConversionEngine.prepare(this@FileViewerActivity, fileData, fileName, analysis.fileType)
             }
             val tabs = listOf("握手包信息", "原始内容", "AI分析")
-            binding.viewPager.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
+            binding.viewPager.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this@FileViewerActivity) {
                 override fun getItemCount() = tabs.size
                 override fun createFragment(pos: Int): Fragment = when (pos) {
                     0 -> HandshakeInfoFragment.newInstance(prepared.path.absolutePath, prepared.kind, prepared.note)
