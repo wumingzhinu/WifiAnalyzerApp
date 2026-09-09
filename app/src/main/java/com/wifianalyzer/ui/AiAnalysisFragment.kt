@@ -5,30 +5,32 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.wifianalyzer.databinding.FragmentAiAnalysisBinding
+import com.wifianalyzer.R
 import com.wifianalyzer.parsers.AiReport
 
 class AiAnalysisFragment : Fragment() {
-    private var _binding: FragmentAiAnalysisBinding? = null
-    private val binding get() = _binding!!
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentAiAnalysisBinding.inflate(inflater, container, false)
-        return binding.root
+        return inflater.inflate(R.layout.fragment_ai_analysis, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        @Suppress("DEPRECATION") arguments?.getParcelable<AiReport>("ai_report")?.let { report ->
-            binding.tvFileOverview.text = report.fileOverview
-            binding.tvStructureAnalysis.text = report.structureAnalysis
-            binding.tvAiConclusion.text = report.aiConclusion
-        }
+        @Suppress("DEPRECATION")
+        val report = arguments?.getParcelable<AiReport>("ai_report") ?: return
+
+        view.findViewById<android.widget.TextView>(R.id.tvFileOverview).text = report.fileOverview
+        view.findViewById<android.widget.TextView>(R.id.tvHandshakeSummary).text = report.handshakeSummary
+        view.findViewById<android.widget.TextView>(R.id.tvSecurityAnalysis).text = report.securityAnalysis
+        view.findViewById<android.widget.TextView>(R.id.tvCrackableInfo).text = report.crackableInfo
+        view.findViewById<android.widget.TextView>(R.id.tvRecommendations).text = report.recommendations
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
-
     companion object {
-        fun newInstance(report: AiReport) = AiAnalysisFragment().apply { arguments = Bundle().apply { putParcelable("ai_report", report) } }
+        fun newInstance(report: AiReport): AiAnalysisFragment {
+            return AiAnalysisFragment().apply {
+                arguments = Bundle().apply { putParcelable("ai_report", report) }
+            }
+        }
     }
 }

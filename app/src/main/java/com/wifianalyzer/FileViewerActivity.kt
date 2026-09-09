@@ -9,6 +9,7 @@ import com.wifianalyzer.parsers.AiAnalyzer
 import com.wifianalyzer.parsers.FileParser
 import com.wifianalyzer.ui.AiAnalysisFragment
 import com.wifianalyzer.ui.HexViewFragment
+import com.wifianalyzer.ui.HandshakeInfoFragment
 
 class FileViewerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityFileViewerBinding
@@ -27,12 +28,19 @@ class FileViewerActivity : AppCompatActivity() {
         binding.tvFileInfo.text = "${analysis.fileName} | ${analysis.fileSize} bytes | ${analysis.fileType}"
 
         binding.viewPager.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
-            override fun getItemCount() = 2
-            override fun createFragment(pos: Int): Fragment =
-                if (pos == 0) HexViewFragment.newInstance(fileData) else AiAnalysisFragment.newInstance(aiReport)
+            override fun getItemCount() = 3
+            override fun createFragment(pos: Int): Fragment = when (pos) {
+                0 -> HandshakeInfoFragment.newInstance(analysis)
+                1 -> HexViewFragment.newInstance(analysis.rawHex.toByteArray())
+                else -> AiAnalysisFragment.newInstance(aiReport)
+            }
         }
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
-            tab.text = if (pos == 0) "原始内容" else "AI分析"
+            tab.text = when (pos) {
+                0 -> "握手包信息"
+                1 -> "原始内容"
+                else -> "AI分析"
+            }
         }.attach()
     }
 }
