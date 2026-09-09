@@ -492,7 +492,8 @@ class ToolsActivity : AppCompatActivity() {
         progressIndicator.visibility = View.VISIBLE
 
         lifecycleScope.launch {
-            val result = executor.runToolAsync(binaryPath, args, object : ToolExecutor.OutputCallback {
+            val startTime = System.currentTimeMillis()
+            executor.runToolAsync(binaryPath, args, object : ToolExecutor.OutputCallback {
                 override fun onOutput(line: String) {
                     runOnUiThread { appendOutput(line) }
                 }
@@ -504,7 +505,7 @@ class ToolsActivity : AppCompatActivity() {
                         progressIndicator.visibility = View.GONE
                         appendOutput("\n───────────────────────")
                         appendOutput("退出码: $exitCode")
-                        appendOutput("耗时: ${result.duration}ms")
+                        appendOutput("耗时: ${System.currentTimeMillis() - startTime}ms")
                     }
                 }
             })
@@ -517,7 +518,8 @@ class ToolsActivity : AppCompatActivity() {
         progressIndicator.visibility = View.VISIBLE
 
         lifecycleScope.launch {
-            val result = executor.runToolAsync("/system/bin/sh", listOf("-c", command), object : ToolExecutor.OutputCallback {
+            val startTime = System.currentTimeMillis()
+            executor.runToolAsync("/system/bin/sh", listOf("-c", command), object : ToolExecutor.OutputCallback {
                 override fun onOutput(line: String) {
                     runOnUiThread { appendOutput(line) }
                 }
@@ -529,7 +531,7 @@ class ToolsActivity : AppCompatActivity() {
                         progressIndicator.visibility = View.GONE
                         appendOutput("\n───────────────────────")
                         appendOutput("退出码: $exitCode")
-                        appendOutput("耗时: ${result.duration}ms")
+                        appendOutput("耗时: ${System.currentTimeMillis() - startTime}ms")
                     }
                 }
             })
