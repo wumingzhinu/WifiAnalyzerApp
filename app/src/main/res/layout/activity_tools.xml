@@ -3,17 +3,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FF0D1117">
+    android:background="#FFF1F5F9">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="查看握手包"
-        android:textSize="22sp"
-        android:textColor="#FFE6EDF3"
+        android:textSize="20sp"
+        android:textColor="#FF1E293B"
         android:textStyle="bold"
-        android:padding="20dp"
-        android:background="#FF21262D" />
+        android:padding="18dp"
+        android:background="#FFFFFFFF"
+        android:elevation="2dp" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -26,77 +27,124 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Aircrack-ng"
-                android:textSize="16sp"
-                android:textColor="#FF58A6FF"
-                android:textStyle="bold"
-                android:layout_marginBottom="4dp" />
+                app:cardCornerRadius="12dp"
+                app:cardElevation="1dp"
+                android:layout_marginBottom="12dp"
+                xmlns:app="http://schemas.android.com/apk/res-auto">
 
-            <TextView
-                android:id="@+id/tvAircrackStatus"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Aircrack-ng"
+                        android:textSize="15sp"
+                        android:textColor="#FF2563EB"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:id="@+id/tvAircrackStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="#FF64748B"
+                        android:layout_marginBottom="10dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAircrackView"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:text="查看握手包 (aircrack-ng -a 2)"
+                        android:textSize="13sp"
+                        android:textAllCaps="false"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="#FF2563EB"
+                        android:textColor="#FF2563EB"
+                        app:cornerRadius="10dp"
+                        xmlns:app="http://schemas.android.com/apk/res-auto" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:layout_marginBottom="8dp" />
+                app:cardCornerRadius="12dp"
+                app:cardElevation="1dp"
+                android:layout_marginBottom="12dp"
+                xmlns:app="http://schemas.android.com/apk/res-auto">
 
-            <Button
-                android:id="@+id/btnAircrackView"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="查看握手包 (aircrack-ng -a 2)"
-                android:textSize="14sp"
-                android:backgroundTint="#FF30363D"
-                android:textColor="#FF58A6FF"
-                android:layout_marginBottom="20dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="HCXpcapngtool (hcxtools)"
-                android:textSize="16sp"
-                android:textColor="#FF58A6FF"
-                android:textStyle="bold"
-                android:layout_marginBottom="4dp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="HCXpcapngtool (hcxtools)"
+                        android:textSize="15sp"
+                        android:textColor="#FF2563EB"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
 
-            <TextView
-                android:id="@+id/tvHcxStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:layout_marginBottom="8dp" />
+                    <TextView
+                        android:id="@+id/tvHcxStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="#FF64748B"
+                        android:layout_marginBottom="10dp" />
 
-            <Button
-                android:id="@+id/btnHcxpcapngtoolView"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="查看握手包详情"
-                android:textSize="14sp"
-                android:backgroundTint="#FF30363D"
-                android:textColor="#FF58A6FF"
-                android:layout_marginBottom="8dp" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnHcxpcapngtoolView"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:text="查看握手包详情"
+                        android:textSize="13sp"
+                        android:textAllCaps="false"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="#FF2563EB"
+                        android:textColor="#FF2563EB"
+                        app:cornerRadius="10dp"
+                        android:layout_marginBottom="8dp"
+                        xmlns:app="http://schemas.android.com/apk/res-auto" />
 
-            <Button
-                android:id="@+id/btnHcxpcapngtoolInfo"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="显示完整信息 (--all)"
-                android:textSize="14sp"
-                android:backgroundTint="#FF30363D"
-                android:textColor="#FF58A6FF"
-                android:layout_marginBottom="20dp" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnHcxpcapngtoolInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:text="显示完整信息 (--all)"
+                        android:textSize="13sp"
+                        android:textAllCaps="false"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="#FF2563EB"
+                        android:textColor="#FF2563EB"
+                        app:cornerRadius="10dp"
+                        xmlns:app="http://schemas.android.com/apk/res-auto" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCustomCmd"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="42dp"
                 android:text="自定义命令"
-                android:textSize="14sp"
-                android:backgroundTint="#FF30363D"
-                android:textColor="#FFC9D1D9" />
-
+                android:textSize="13sp"
+                android:textAllCaps="false"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#FF94A3B8"
+                android:textColor="#FF64748B"
+                app:cornerRadius="10dp"
+                xmlns:app="http://schemas.android.com/apk/res-auto" />
         </LinearLayout>
     </ScrollView>
 
@@ -104,8 +152,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#FF21262D"
-        android:padding="8dp">
+        android:background="#FFFFFFFF"
+        android:padding="12dp"
+        android:elevation="4dp">
 
         <ProgressBar
             android:id="@+id/progressIndicator"
@@ -119,14 +168,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="输出"
-            android:textColor="#FFC9D1D9"
+            android:textColor="#FF94A3B8"
             android:textSize="12sp"
-            android:paddingLeft="8dp" />
+            android:paddingLeft="4dp"
+            android:layout_marginBottom="4dp" />
 
         <ScrollView
             android:id="@+id/scrollView"
             android:layout_width="match_parent"
-            android:layout_height="220dp">
+            android:layout_height="200dp"
+            android:background="#FFF8FAFC"
+            android:padding="4dp">
 
             <TextView
                 android:id="@+id/tvOutput"
@@ -134,7 +186,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="monospace"
                 android:textSize="11sp"
-                android:textColor="#FF58A6FF"
+                android:textColor="#FF1E293B"
                 android:padding="8dp" />
         </ScrollView>
     </LinearLayout>
