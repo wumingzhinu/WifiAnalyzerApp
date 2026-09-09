@@ -4,14 +4,22 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.wifianalyzer.R
-import com.wifianalyzer.parsers.FileAnalysis
-import com.wifianalyzer.parsers.HandshakeInfo
+import com.wifianalyzer.tools.ToolExecutor
+import kotlinx.coroutines.launch
+import java.io.File
 
 class HandshakeInfoFragment : Fragment() {
+
+    private lateinit var executor: ToolExecutor
+    private lateinit var tvOutput: TextView
+    private lateinit var scrollView: ScrollView
+    private lateinit var progress: ProgressBar
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_handshake_info, container, false)
@@ -19,135 +27,63 @@ class HandshakeInfoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        @Suppress("DEPRECATION")
-        val analysis = arguments?.getParcelable<FileAnalysis>("analysis") ?: return
 
-        val container = view.findViewById<LinearLayout>(R.id.container_handshakes)
+        executor = ToolExecutor(requireContext())
+        tvOutput = view.findViewById(R.id.tvHandshakeOutput)
+        scrollView = view.findViewById(R.id.handshakeScrollView)
+        progress = view.findViewById(R.id.handshakeProgress)
 
-        if (analysis.handshakes.isEmpty()) {
-            val tv = TextView(requireContext()).apply {
-                text = "未检测到握手包信息\n\n请确认文件是否为有效的WiFi抓包文件"
-                setTextColor(0xFFFF5722.toInt())
-                textSize = 16f
-                setPadding(24, 24, 24, 24)
-            }
-            container.addView(tv)
+        val filePath = arguments?.getString("file_path") ?: return
+        val file = File(filePath)
+        if (!file.exists()) {
+            append("文件不存在: $filePath")
             return
         }
 
-        for ((i, hs) in analysis.handshakes.withIndex()) {
-            val card = createHandshakeCard(hs, i)
-            container.addView(card)
-        }
+        runHcxpcapngtool(file)
     }
 
-    private fun createHandshakeCard(hs: HandshakeInfo, index: Int): View {
-        val ctx = requireContext()
+    private fun runHcxpcapngtool(file: File) {
+        append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        append("文件: ${file.name}")
+        append("大小: ${file.length()} bytes")
+        append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 
-        val outer = LinearLayout(ctx).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(24, 24, 24, 24)
-            setBackgroundColor(0xFF21262D.toInt())
-            val lp = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            lp.bottomMargin = 24
-            layoutParams = lp
-        }
+        progress.visibility = View.VISIBLE
 
-        if (index > 0) {
-            val divider = TextView(ctx).apply {
-                text = ""
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, 2
-                ).also { it.topMargin = 16; it.bottomMargin = 16 }
-                setBackgroundColor(0xFF30363D.toInt())
-            }
-            outer.addView(divider)
+        val hcxpcapngtool = executor.getToolPath("hcxpcapngtool")
+        if (hcxpcapngtool == null) {
+            append("⚠ hcxpcapngtool 未找到")
+            append("路径: ${context?.filesDir}/tools/hcxpcapngtool")
+            progress.visibility = View.GONE
+            return
         }
 
-        val title = TextView(ctx).apply {
-            text = if (index > 0) "握手包 #${index + 1}" else "握手包信息"
-            setTextColor(0xFF58A6FF.toInt())
-            textSize = 20f
-            setPadding(0, 0, 0, 16)
-        }
-        outer.addView(title)
-
-        val fields = listOf(
-            "SSID" to hs.ssid,
-            "AP MAC" to hs.apMac,
-            "客户端 MAC" to hs.clientMac,
-            "加密类型" to hs.encryptionType,
-            "消息对" to describeMessagePair(hs.messagePair),
-            "握手帧数" to hs.handshakeCount.toString(),
-            "密钥版本" to "v${hs.keyVersion}"
-        )
-
-        for ((label, value) in fields) {
-            outer.addView(createFieldRow(label, value))
-        }
-
-        if (hs.pmkid != null) {
-            outer.addView(createFieldRow("PMKID", hs.pmkid, 0xFFFF5722.toInt()))
-        }
-        if (hs.mic != null) {
-            outer.addView(createFieldRow("MIC", hs.mic))
-        }
-        if (hs.nonceAp != null) {
-            outer.addView(createFieldRow("AP Nonce", hs.nonceAp, 0xFF8B949E.toInt()))
-        }
-        if (hs.nonceClient != null) {
-            outer.addView(createFieldRow("客户端 Nonce", hs.nonceClient, 0xFF8B949E.toInt()))
-        }
-        if (hs.eapolLength > 0) {
-            outer.addView(createFieldRow("EAPOL长度", "${hs.eapolLength} bytes"))
-        }
-        if (hs.timestamp != "N/A") {
-            outer.addView(createFieldRow("捕获时间", hs.timestamp))
-        }
-
-        return outer
-    }
-
-    private fun createFieldRow(label: String, value: String, valueColor: Int = 0xFFC9D1D9.toInt()): LinearLayout {
-        val ctx = requireContext()
-        return LinearLayout(ctx).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 6, 0, 6)
-            addView(TextView(ctx).apply {
-                text = "$label:"
-                setTextColor(0xFF8B949E.toInt())
-                textSize = 14f
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            })
-            addView(TextView(ctx).apply {
-                text = value
-                setTextColor(valueColor)
-                textSize = 14f
-                isSingleLine = false
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2f)
+        append("▶ hcxpcapngtool ${file.name}\n")
+        lifecycleScope.launch {
+            executor.runToolAsync(hcxpcapngtool, listOf(file.absolutePath), object : ToolExecutor.OutputCallback {
+                override fun onOutput(line: String) { append(line) }
+                override fun onError(line: String) { append(line) }
+                override fun onComplete(exitCode: Int) {
+                    append("\n───────────────────────")
+                    append("退出码: $exitCode")
+                    progress.visibility = View.GONE
+                }
             })
         }
     }
 
-    private fun describeMessagePair(mp: Int): String = when (mp) {
-        0 -> "M1+M2 (基本握手)"
-        1 -> "M1+M4"
-        2 -> "M2+M3 (标准)"
-        3 -> "M2+M3+M4"
-        4 -> "M3+M4"
-        5 -> "M3+M4+PMKID"
-        else -> "类型 $mp"
+    private fun append(text: String) {
+        activity?.runOnUiThread {
+            tvOutput.append(text + "\n")
+            scrollView.post { scrollView.fullScroll(View.FOCUS_DOWN) }
+        }
     }
 
     companion object {
-        fun newInstance(analysis: FileAnalysis): HandshakeInfoFragment {
+        fun newInstance(filePath: String): HandshakeInfoFragment {
             return HandshakeInfoFragment().apply {
-                arguments = Bundle().apply {
-                    putParcelable("analysis", analysis)
-                }
+                arguments = Bundle().apply { putString("file_path", filePath) }
             }
         }
     }

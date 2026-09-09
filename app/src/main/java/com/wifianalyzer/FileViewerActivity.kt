@@ -29,13 +29,20 @@ class FileViewerActivity : AppCompatActivity() {
 
         binding.tvFileInfo.text = "${analysis.fileName} | ${analysis.fileSize} bytes | ${analysis.fileType}"
 
-        val tmpFile = File(cacheDir, "current_capture.${analysis.fileType.name.lowercase()}")
+        val ext = when(analysis.fileType) {
+            com.wifianalyzer.parsers.FileType.PCAP, com.wifianalyzer.parsers.FileType.CAP -> "cap"
+            com.wifianalyzer.parsers.FileType.PCAPNG -> "pcapng"
+            com.wifianalyzer.parsers.FileType.HCCAPX -> "hccapx"
+            com.wifianalyzer.parsers.FileType.HASHCAT_22000, com.wifianalyzer.parsers.FileType.HC22000 -> "22000"
+            else -> "cap"
+        }
+        val tmpFile = File(cacheDir, "current_capture.$ext")
         tmpFile.writeBytes(fileData)
 
         binding.viewPager.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
             override fun getItemCount() = 4
             override fun createFragment(pos: Int): Fragment = when (pos) {
-                0 -> HandshakeInfoFragment.newInstance(analysis)
+                0 -> HandshakeInfoFragment.newInstance(tmpFile.absolutePath)
                 1 -> ToolOutputFragment.newInstance(tmpFile.absolutePath)
                 2 -> HexViewFragment.newInstance(analysis.rawHex.toByteArray())
                 else -> AiAnalysisFragment.newInstance(aiReport)
