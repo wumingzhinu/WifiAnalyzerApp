@@ -20,10 +20,14 @@ class ToolExecutor(private val context: Context) {
     }
 
     fun extractBinary(assetName: String, targetName: String): String? {
-        val targetFile = File(context.filesDir, "tools/$targetName")
+        val toolsDir = File(context.filesDir, "tools")
+        toolsDir.mkdirs()
+
+        val targetFile = File(toolsDir, targetName)
         if (targetFile.exists() && targetFile.canExecute()) return targetFile.absolutePath
 
-        targetFile.parentFile?.mkdirs()
+        // 删除旧文件重新释放
+        if (targetFile.exists()) targetFile.delete()
 
         return try {
             context.assets.open("tools/$assetName").use { input ->
@@ -31,8 +35,16 @@ class ToolExecutor(private val context: Context) {
                     input.copyTo(output)
                 }
             }
-            targetFile.setExecutable(true, false)
+            // 设置权限: owner rwx, group rx, others rx
             targetFile.setReadable(true, false)
+            targetFile.setExecutable(true, false)
+            targetFile.setWritable(true, false)
+
+            // 用 Runtime 确保 chmod 生效
+            try {
+                Runtime.getRuntime().exec(arrayOf("chmod", "755", targetFile.absolutePath)).waitFor()
+            } catch (_: Exception) {}
+
             targetFile.absolutePath
         } catch (e: Exception) {
             null
@@ -48,8 +60,14 @@ class ToolExecutor(private val context: Context) {
         val output = StringBuilder()
         val error = StringBuilder()
 
+        // 确保有执行权限
+        try {
+            Runtime.getRuntime().exec(arrayOf("chmod", "755", binaryPath)).waitFor()
+        } catch (_: Exception) {}
+
         return try {
-            val processBuilder = ProcessBuilder(listOf("sh", "-c", "$binaryPath ${args.joinToString(" ")}"))
+            val cmd = "exec $binaryPath ${args.joinToString(" ") { "\"$it\" }}"
+            val processBuilder = ProcessBuilder(listOf("sh", "-c", cmd))
             processBuilder.directory(context.filesDir)
             processBuilder.environment()["PATH"] = "${context.filesDir}/tools:/system/bin:/system/xbin"
             processBuilder.redirectErrorStream(true)
