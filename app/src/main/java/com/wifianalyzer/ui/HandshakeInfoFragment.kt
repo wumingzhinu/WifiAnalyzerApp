@@ -44,43 +44,25 @@ class HandshakeInfoFragment : Fragment() {
     }
 
     private fun runHcxpcapngtool(file: File) {
-        append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        append("文件: ${file.name}")
-        append("大小: ${file.length()} bytes")
-        append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-
+        append("文件: ${file.name} (${file.length()} bytes)")
+        append("────────────────────────────")
         progress?.visibility = View.VISIBLE
 
         val hcxPath = executor?.getToolPath("hcxpcapngtool")
         if (hcxPath == null) {
-            append("⚠ hcxpcapngtool 未找到")
-            append("正在尝试释放工具...")
-            lifecycleScope.launch {
-                val extracted = withContext(Dispatchers.IO) {
-                    executor?.extractBinary("hcxpcapngtool", "hcxpcapngtool")
-                }
-                if (extracted != null) {
-                    append("✓ 工具已释放: $extracted\n")
-                    runTool(extracted, file)
-                } else {
-                    append("✗ 工具释放失败")
-                    progress?.visibility = View.GONE
-                }
-            }
+            append("✗ hcxpcapngtool 未找到 (nativeLibraryDir)")
+            append("libDir: ${requireContext().applicationInfo.nativeLibraryDir}")
+            progress?.visibility = View.GONE
             return
         }
-        runTool(hcxPath, file)
-    }
-
-    private fun runTool(binaryPath: String, file: File) {
-        append("▶ hcxpcapngtool ${file.name}\n")
+        append("路径: $hcxPath\n")
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
-                executor?.runTool(binaryPath, listOf(file.absolutePath))
+                executor?.runTool(hcxPath, listOf(file.absolutePath))
             }
             if (result != null) {
                 append(result.output)
-                append("\n───────────────────────")
+                append("────────────────────────────")
                 append("退出码: ${result.exitCode}")
             }
             progress?.visibility = View.GONE

@@ -26,6 +26,12 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+            doNotStrip("**/libhcx*.so")
+        }
+    }
 }
 
 dependencies {

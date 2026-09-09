@@ -7,39 +7,16 @@ class ToolExecutor(private val context: Context) {
 
     data class ToolResult(val exitCode: Int, val output: String, val error: String, val duration: Long)
 
+    private fun libDir(): String = context.applicationInfo.nativeLibraryDir
+
     fun getToolPath(toolName: String): String? {
-        // 1. nativeLibraryDir (jniLibs, always executable)
-        val nativePath = File(context.applicationInfo.nativeLibraryDir, toolName)
-        if (nativePath.exists()) return nativePath.absolutePath
-
-        // 2. app internal tools dir
-        val appPath = File(context.filesDir, "tools/$toolName")
-        if (appPath.exists() && appPath.canExecute()) return appPath.absolutePath
-
-        // 3. extract from assets
-        val extracted = extractBinary(toolName, toolName)
-        if (extracted != null) return extracted
-
-        // 4. Termux
+        val named = File(libDir(), "lib$toolName.so")
+        if (named.exists()) return named.absolutePath
+        val bare = File(libDir(), toolName)
+        if (bare.exists()) return bare.absolutePath
         val termuxPath = "/data/data/com.termux/files/usr/bin/$toolName"
         if (File(termuxPath).exists()) return termuxPath
-
         return null
-    }
-
-    fun extractBinary(assetName: String, targetName: String): String? {
-        val toolsDir = File(context.filesDir, "tools")
-        toolsDir.mkdirs()
-        val targetFile = File(toolsDir, targetName)
-        if (targetFile.exists() && targetFile.canExecute()) return targetFile.absolutePath
-        if (targetFile.exists()) targetFile.delete()
-        return try {
-            context.assets.open("tools/$assetName").use { input ->
-                FileOutputStream(targetFile).use { output -> input.copyTo(output) }
-            }
-            try { Runtime.getRuntime().exec(arrayOf("chmod", "755", targetFile.absolutePath)).waitFor() } catch (_: Exception) {}
-            targetFile.absolutePath
-        } catch (e: Exception) { null }
     }
 
     fun runTool(binaryPath: String, args: List<String>): ToolResult {
@@ -51,7 +28,8 @@ class ToolExecutor(private val context: Context) {
             allArgs.addAll(args)
             val pb = ProcessBuilder(allArgs)
             pb.directory(context.filesDir)
-            pb.environment()["PATH"] = context.applicationInfo.nativeLibraryDir + ":/system/bin:/system/xbin"
+            pb.environment()["LD_LIBRARY_PATH"] = libDir()
+            pb.environment()["PATH"] = libDir() + ":/system/bin:/system/xbin"
             pb.redirectErrorStream(true)
             val process = pb.start()
             BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
@@ -62,11 +40,9 @@ class ToolExecutor(private val context: Context) {
                 }
             }
             val exitCode = process.waitFor()
-            val duration = System.currentTimeMillis() - startTime
-            ToolResult(exitCode, output.toString(), "", duration)
+            ToolResult(exitCode, output.toString(), "", System.currentTimeMillis() - startTime)
         } catch (e: Exception) {
-            val duration = System.currentTimeMillis() - startTime
-            ToolResult(-1, "", e.message ?: "Unknown error", duration)
+            ToolResult(-1, "", e.message ?: "Unknown error", System.currentTimeMillis() - startTime)
         }
     }
 }
