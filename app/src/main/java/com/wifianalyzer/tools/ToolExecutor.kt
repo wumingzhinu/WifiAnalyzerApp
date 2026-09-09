@@ -21,7 +21,7 @@ class ToolExecutor(private val context: Context) {
 
     fun extractBinary(assetName: String, targetName: String): String? {
         val targetFile = File(context.filesDir, "tools/$targetName")
-        if (targetFile.exists()) return targetFile.absolutePath
+        if (targetFile.exists() && targetFile.canExecute()) return targetFile.absolutePath
 
         targetFile.parentFile?.mkdirs()
 
@@ -31,7 +31,8 @@ class ToolExecutor(private val context: Context) {
                     input.copyTo(output)
                 }
             }
-            targetFile.setExecutable(true)
+            targetFile.setExecutable(true, false)
+            targetFile.setReadable(true, false)
             targetFile.absolutePath
         } catch (e: Exception) {
             null
@@ -48,9 +49,10 @@ class ToolExecutor(private val context: Context) {
         val error = StringBuilder()
 
         return try {
-            val processBuilder = ProcessBuilder(listOf(binaryPath) + args)
+            val processBuilder = ProcessBuilder(listOf("sh", "-c", "$binaryPath ${args.joinToString(" ")}"))
             processBuilder.directory(context.filesDir)
             processBuilder.environment()["PATH"] = "${context.filesDir}/tools:/system/bin:/system/xbin"
+            processBuilder.redirectErrorStream(true)
 
             val process = processBuilder.start()
 
