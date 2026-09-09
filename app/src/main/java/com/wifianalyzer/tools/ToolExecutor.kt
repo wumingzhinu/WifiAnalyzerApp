@@ -32,44 +32,44 @@ class ToolExecutor(private val context: Context) {
             targetFile.setReadable(true, false)
             targetFile.setExecutable(true, false)
             targetFile.setWritable(true, false)
-            try { Runtime.getRuntime().exec(arrayOf("chmod", "755", targetFile.absolutePath)).waitFor() } catch (_: Exception) {}
+            try {
+                Runtime.getRuntime().exec(arrayOf("chmod", "755", targetFile.absolutePath)).waitFor()
+            } catch (_: Exception) {}
             targetFile.absolutePath
-        } catch (e: Exception) { null }
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun runTool(binaryPath: String, args: List<String>, callback: OutputCallback? = null): ToolResult {
         val startTime = System.currentTimeMillis()
         val output = StringBuilder()
         val error = StringBuilder()
-        try { Runtime.getRuntime().exec(arrayOf("chmod", "755", binaryPath)).waitFor() } catch (_: Exception) {}
+        try {
+            Runtime.getRuntime().exec(arrayOf("chmod", "755", binaryPath)).waitFor()
+        } catch (_: Exception) {}
         return try {
-            val cmd = "exec $binaryPath ${args.joinToString(" ") { "\"$it\" }}"
+            val cmd = "$binaryPath ${args.joinToString(" ") { "\"$it\" }}"
             val pb = ProcessBuilder(listOf("sh", "-c", cmd))
             pb.directory(context.filesDir)
             pb.environment()["PATH"] = "${context.filesDir}/tools:/system/bin:/system/xbin"
             pb.redirectErrorStream(true)
             val process = pb.start()
             val outputThread = Thread {
-                BufferedReader(InputStreamReader(process.inputStream)).use { r ->
-                    var line: String?
-                    while (r.readLine().also { line = it } != null) {
-                        val l = line ?: continue
-                        output.appendLine(l)
-                        callback?.onOutput(l)
+                try {
+                    BufferedReader(InputStreamReader(process.inputStream)).use { r ->
+                        var line: String?
+                        while (r.readLine().also { line = it } != null) {
+                            val l = line ?: continue
+                            output.appendLine(l)
+                            callback?.onOutput(l)
+                        }
                     }
-                }
+                } catch (_: Exception) {}
             }
             outputThread.start()
-            BufferedReader(InputStreamReader(process.inputStream)).use { r ->
-                var line: String?
-                while (r.readLine().also { line = it } != null) {
-                    val l = line ?: continue
-                    output.appendLine(l)
-                    callback?.onOutput(l)
-                }
-            }
             val exitCode = process.waitFor()
-            outputThread.join(5000)
+            outputThread.join(10000)
             callback?.onComplete(exitCode)
             val duration = System.currentTimeMillis() - startTime
             ToolResult(exitCode, output.toString(), error.toString(), duration)
