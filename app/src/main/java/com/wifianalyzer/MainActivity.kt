@@ -7,10 +7,11 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.wifianalyzer.converters.ConversionEngine
+import com.wifianalyzer.converters.ConversionEngine.Target
 import com.wifianalyzer.databinding.ActivityMainBinding
 import com.wifianalyzer.parsers.FileParser
 import com.wifianalyzer.parsers.FileType
-import com.wifianalyzer.tools.ToolExecutor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -21,22 +22,12 @@ class MainActivity : AppCompatActivity() {
     private var fileData: ByteArray? = null
     private var fileName: String? = null
     private var fileType: FileType = FileType.UNKNOWN
-    private lateinit var executor: ToolExecutor
-
-    private val conversions = mapOf(
-        FileType.PCAP to listOf("HC22000" to "hc22000", "HCCAPX" to "hccapx"),
-        FileType.CAP to listOf("HC22000" to "hc22000", "HCCAPX" to "hccapx"),
-        FileType.PCAPNG to listOf("HC22000" to "hc22000", "HCCAPX" to "hccapx"),
-        FileType.HCCAPX to listOf("HC22000" to "hc22000"),
-        FileType.HASHCAT_22000 to listOf("HCCAPX" to "hccapx")
-    )
+    private var targets: List<Target> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        executor = ToolExecutor(this)
 
         binding.btnSelectFile.setOnClickListener {
             startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
@@ -55,53 +46,36 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnConvert.setOnClickListener {
-            if (binding.cardConvert.visibility == View.VISIBLE) {
-                binding.cardConvert.visibility = View.GONE
-            } else {
-                showConvertCard()
-            }
+            if (binding.cardConvert.visibility == View.VISIBLE) binding.cardConvert.visibility = View.GONE
+            else showConvertCard()
         }
 
-        binding.btnStartConvert.setOnClickListener {
-            doConvert()
-        }
+        binding.btnStartConvert.setOnClickListener { doConvert() }
     }
 
     private fun showConvertCard() {
         val data = fileData ?: return
         fileType = FileParser().detectFileType(data, fileName ?: "")
-        val targets = conversions[fileType]
-        if (targets.isNullOrEmpty()) {
-            Toast.makeText(this, "此格式不支持转换", Toast.LENGTH_SHORT).show()
+        targets = ConversionEngine.targetsFor(fileType)
+        if (targets.isEmpty()) {
+            Toast.makeText(this, "格式 ${fileType.name} 不支持互转", Toast.LENGTH_SHORT).show()
             return
         }
         binding.cardConvert.visibility = View.VISIBLE
-        binding.spinnerTarget.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item, targets.map { it.first }
-        )
+        binding.spinnerTarget.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
+            targets.map { it.label })
     }
 
     private fun doConvert() {
         val data = fileData ?: return
-        val targets = conversions[fileType] ?: return
-        val idx = binding.spinnerTarget.selectedItemPosition
-        val target = targets[idx].second
-        val hcxPath = executor.getToolPath("hcxpcapngtool") ?: run {
-            Toast.makeText(this, "hcxpcapngtool not found", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val srcFile = File(cacheDir, "convert_src.cap")
-        srcFile.writeBytes(data)
+        if (targets.isEmpty()) return
+        val target = targets[binding.spinnerTarget.selectedItemPosition]
+        val src = File(cacheDir, "src.${ConversionEngine.sourceExt(fileType)}")
+        src.writeBytes(data)
         binding.tvConvertResult.visibility = View.VISIBLE
-        binding.tvConvertResult.text = "Converting..."
+        binding.tvConvertResult.text = "转换中..."
         lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                val outName = if (target == "hc22000") "converted.22000" else "converted.hccapx"
-                val outFile = File(cacheDir, outName)
-                val flag = if (target == "hc22000") "--ouelist" else "--hccapx"
-                executor.runTool(hcxPath, listOf(flag, "-o", outFile.absolutePath, srcFile.absolutePath))
-                if (outFile.exists()) "OK: ${outFile.absolutePath} (${outFile.length()} bytes)" else "FAIL"
-            }
+            val result = withContext(Dispatchers.IO) { ConversionEngine.convert(this@MainActivity, src, fileType, target) }
             binding.tvConvertResult.text = result
         }
     }
@@ -113,7 +87,7 @@ class MainActivity : AppCompatActivity() {
                 contentResolver.openInputStream(uri)?.use { stream ->
                     fileData = stream.readBytes()
                     fileName = uri.lastPathSegment ?: "unknown"
-                    binding.tvSelectedFile.text = "OK: $fileName (${fileData?.size} bytes)"
+                    binding.tvSelectedFile.text = "✓ $fileName (${fileData?.size} bytes)"
                     binding.btnViewFile.isEnabled = true
                     binding.btnConvert.isEnabled = true
                     binding.cardConvert.visibility = View.GONE

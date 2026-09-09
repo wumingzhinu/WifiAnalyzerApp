@@ -10,7 +10,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".FileViewerActivity" />
-        <activity android:name=".ConvertActivity" />
         <activity android:name=".tools.ToolsActivity" />
     </application>
 </manifest>

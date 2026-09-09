@@ -3,15 +3,18 @@ package com.wifianalyzer
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.tabs.TabLayoutMediator
+import com.wifianalyzer.converters.ConversionEngine
 import com.wifianalyzer.databinding.ActivityFileViewerBinding
 import com.wifianalyzer.parsers.AiAnalyzer
 import com.wifianalyzer.parsers.FileParser
 import com.wifianalyzer.ui.AiAnalysisFragment
 import com.wifianalyzer.ui.HandshakeInfoFragment
 import com.wifianalyzer.ui.HexViewFragment
-import com.wifianalyzer.ui.ToolOutputFragment
-import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class FileViewerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityFileViewerBinding
@@ -25,38 +28,28 @@ class FileViewerActivity : AppCompatActivity() {
 
         val fileData = intent.getByteArrayExtra("FILE_DATA") ?: run { finish(); return }
         val fileName = intent.getStringExtra("FILE_NAME") ?: "unknown"
-        val parser = FileParser()
-        val analysis = parser.parseFile(fileData, fileName)
+        val analysis = FileParser().parseFile(fileData, fileName)
         val aiReport = AiAnalyzer().analyze(analysis)
 
-        binding.tvFileInfo.text = "${analysis.fileName} | ${analysis.fileSize} bytes | ${analysis.fileType}"
+        binding.tvFileInfo.text =
+            "${analysis.fileName} | ${analysis.fileSize}B | ${analysis.fileType.name}"
 
-        val ext = when(analysis.fileType) {
-            com.wifianalyzer.parsers.FileType.PCAP, com.wifianalyzer.parsers.FileType.CAP -> "cap"
-            com.wifianalyzer.parsers.FileType.PCAPNG -> "pcapng"
-            com.wifianalyzer.parsers.FileType.HCCAPX -> "hccapx"
-            com.wifianalyzer.parsers.FileType.HASHCAT_22000, com.wifianalyzer.parsers.FileType.HC22000 -> "22000"
-            else -> "cap"
-        }
-        val tmpFile = File(cacheDir, "current_capture.$ext")
-        tmpFile.writeBytes(fileData)
-
-        binding.viewPager.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
-            override fun getItemCount() = 4
-            override fun createFragment(pos: Int): Fragment = when (pos) {
-                0 -> HandshakeInfoFragment.newInstance(tmpFile.absolutePath)
-                1 -> ToolOutputFragment.newInstance(tmpFile.absolutePath)
-                2 -> HexViewFragment.newInstance(analysis.rawHex.toByteArray())
-                else -> AiAnalysisFragment.newInstance(aiReport)
+        lifecycleScope.launch {
+            val prepared = withContext(Dispatchers.IO) {
+                ConversionEngine.prepare(this@FileViewerActivity, fileData, fileName, analysis.fileType)
             }
-        }
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
-            tab.text = when (pos) {
-                0 -> "握手包信息"
-                1 -> "工具输出"
-                2 -> "原始内容"
-                else -> "AI分析"
+            val tabs = listOf("握手包信息", "原始内容", "AI分析")
+            binding.viewPager.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
+                override fun getItemCount() = tabs.size
+                override fun createFragment(pos: Int): Fragment = when (pos) {
+                    0 -> HandshakeInfoFragment.newInstance(prepared.path.absolutePath, prepared.kind, prepared.note)
+                    1 -> HexViewFragment.newInstance(analysis.rawHex.toByteArray())
+                    else -> AiAnalysisFragment.newInstance(aiReport)
+                }
             }
-        }.attach()
+            TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
+                tab.text = tabs[pos]
+            }.attach()
+        }
     }
 }

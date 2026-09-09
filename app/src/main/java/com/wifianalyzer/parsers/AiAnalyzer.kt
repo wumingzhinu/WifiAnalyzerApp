@@ -27,7 +27,7 @@ class AiAnalyzer {
                 FileType.PCAP, FileType.CAP -> "标准抓包格式，可用Wireshark/Hashcat直接处理"
                 FileType.HCCAPX -> "Hashcat HCCAPX格式，可直接用于密码破解"
                 FileType.HASHCAT_22000, FileType.HC22000 -> "Hashcat 22000模式，最新推荐格式"
-                FileType.PMKID -> "PMKID攻击格式，无需客户端"
+                FileType.PMKID -> "PMKID 格式，被动捕获获取"
                 else -> "未知格式"
             }}")
         }
