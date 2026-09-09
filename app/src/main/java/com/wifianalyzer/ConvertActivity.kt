@@ -20,31 +20,16 @@ class ConvertActivity : AppCompatActivity() {
     private lateinit var binding: ActivityConvertBinding
     private lateinit var executor: ToolExecutor
     private var sourceFile: File? = null
-    private var sourceType: FileType = FileType.UNKNOWN
 
     private val conversions = mapOf(
-        FileType.PCAP to listOf(
-            "HC22000 (hashcat推荐)" to "hc22000",
-            "HCCAPX (hashcat旧版)" to "hccapx",
-            "握手包信息" to "info"
-        ),
-        FileType.CAP to listOf(
-            "HC22000 (hashcat推荐)" to "hc22000",
-            "HCCAPX (hashcat旧版)" to "hccapx",
-            "握手包信息" to "info"
-        ),
-        FileType.PCAPNG to listOf(
-            "HC22000 (hashcat推荐)" to "hc22000",
-            "HCCAPX (hashcat旧版)" to "hccapx",
-            "握手包信息" to "info"
-        ),
-        FileType.HCCAPX to listOf(
-            "HC22000 (hashcat推荐)" to "hc22000"
-        ),
-        FileType.HASHCAT_22000 to listOf(
-            "HCCAPX (hashcat旧版)" to "hccapx"
-        )
+        FileType.PCAP to listOf("HC22000" to "hc22000", "HCCAPX" to "hccapx"),
+        FileType.CAP to listOf("HC22000" to "hc22000", "HCCAPX" to "hccapx"),
+        FileType.PCAPNG to listOf("HC22000" to "hc22000", "HCCAPX" to "hccapx"),
+        FileType.HCCAPX to listOf("HC22000" to "hc22000"),
+        FileType.HASHCAT_22000 to listOf("HCCAPX" to "hccapx")
     )
+
+    private var currentTargets: List<Pair<String, String>> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,8 +41,8 @@ class ConvertActivity : AppCompatActivity() {
         val fileData = intent.getByteArrayExtra("FILE_DATA") ?: run { finish(); return }
         val fileName = intent.getStringExtra("FILE_NAME") ?: "unknown"
 
-        sourceType = FileParser().detectFileType(fileData, fileName)
-        val ext = when(sourceType) {
+        val fileType = FileParser().detectFileType(fileData, fileName)
+        val ext = when (fileType) {
             FileType.PCAP, FileType.CAP -> "cap"
             FileType.PCAPNG -> "pcapng"
             FileType.HCCAPX -> "hccapx"
@@ -67,23 +52,22 @@ class ConvertActivity : AppCompatActivity() {
         sourceFile = File(cacheDir, "convert_source.$ext")
         sourceFile?.writeBytes(fileData)
 
-        binding.tvSourceInfo.text = "源文件: $fileName\n类型: $sourceType"
+        binding.tvSourceInfo.text = "源文件: $fileName\n类型: $fileType"
 
-        val targets = conversions[sourceType]
-        if (targets.isNullOrEmpty()) {
+        currentTargets = conversions[fileType] ?: emptyList()
+        if (currentTargets.isEmpty()) {
             Toast.makeText(this, "此格式不支持转换", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
         binding.spinnerTarget.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item, targets.map { it.first }
+            this, android.R.layout.simple_spinner_dropdown_item, currentTargets.map { it.first }
         )
 
         binding.btnStartConvert.setOnClickListener {
             val idx = binding.spinnerTarget.selectedItemPosition
-            val target = targets[idx].second
-            doConvert(target)
+            doConvert(currentTargets[idx].second)
         }
 
         binding.btnBack.setOnClickListener { finish() }
@@ -95,34 +79,26 @@ class ConvertActivity : AppCompatActivity() {
             Toast.makeText(this, "hcxpcapngtool 未找到", Toast.LENGTH_SHORT).show()
             return
         }
-
         binding.tvConvertResult.visibility = View.VISIBLE
         binding.tvConvertResult.text = "转换中..."
-
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 when (target) {
                     "hc22000" -> {
                         val outFile = File(cacheDir, "converted.22000")
-                        executor.runTool(hcxPath, listOf(
-                            "--ouelist", "-o", outFile.absolutePath, src.absolutePath
-                        ))
-                        if (outFile.exists()) "✓ 已转换: ${outFile.name} (${outFile.length()} bytes)\n路径: ${outFile.absolutePath}"
-                        else "✗ 转换失败"
+                        executor.runTool(hcxPath, listOf("--ouelist", "-o", outFile.absolutePath, src.absolutePath))
+                        if (outFile.exists()) "OK: ${outFile.absolutePath} (${outFile.length()} bytes)" else "FAIL"
                     }
                     "hccapx" -> {
                         val outFile = File(cacheDir, "converted.hccapx")
-                        executor.runTool(hcxPath, listOf(
-                            "--hccapx", "-o", outFile.absolutePath, src.absolutePath
-                        ))
-                        if (outFile.exists()) "✓ 已转换: ${outFile.name} (${outFile.length()} bytes)\n路径: ${outFile.absolutePath}"
-                        else "✗ 转换失败"
+                        executor.runTool(hcxPath, listOf("--hccapx", "-o", outFile.absolutePath, src.absolutePath))
+                        if (outFile.exists()) "OK: ${outFile.absolutePath} (${outFile.length()} bytes)" else "FAIL"
                     }
                     "info" -> {
                         val r = executor.runTool(hcxPath, listOf(src.absolutePath))
                         r.output
                     }
-                    else -> "不支持的转换: $target"
+                    else -> "Unknown: $target"
                 }
             }
             binding.tvConvertResult.text = result

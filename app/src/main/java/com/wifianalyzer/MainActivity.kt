@@ -40,14 +40,16 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnSelectFile.setOnClickListener {
             startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE); type = "*/*"
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "*/*"
             }, 1001)
         }
 
         binding.btnViewFile.setOnClickListener {
             fileData?.let { data ->
                 startActivity(Intent(this, FileViewerActivity::class.java).apply {
-                    putExtra("FILE_DATA", data); putExtra("FILE_NAME", fileName)
+                    putExtra("FILE_DATA", data)
+                    putExtra("FILE_NAME", fileName)
                 })
             }
         }
@@ -85,24 +87,20 @@ class MainActivity : AppCompatActivity() {
         val idx = binding.spinnerTarget.selectedItemPosition
         val target = targets[idx].second
         val hcxPath = executor.getToolPath("hcxpcapngtool") ?: run {
-            Toast.makeText(this, "hcxpcapngtool 未找到", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "hcxpcapngtool not found", Toast.LENGTH_SHORT).show()
             return
         }
-
         val srcFile = File(cacheDir, "convert_src.cap")
         srcFile.writeBytes(data)
-
         binding.tvConvertResult.visibility = View.VISIBLE
-        binding.tvConvertResult.text = "转换中..."
-
+        binding.tvConvertResult.text = "Converting..."
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 val outName = if (target == "hc22000") "converted.22000" else "converted.hccapx"
                 val outFile = File(cacheDir, outName)
                 val flag = if (target == "hc22000") "--ouelist" else "--hccapx"
                 executor.runTool(hcxPath, listOf(flag, "-o", outFile.absolutePath, srcFile.absolutePath))
-                if (outFile.exists()) "✓ 转换成功\n${outFile.name} (${outFile.length()} bytes)\n${outFile.absolutePath}"
-                else "✗ 转换失败"
+                if (outFile.exists()) "OK: ${outFile.absolutePath} (${outFile.length()} bytes)" else "FAIL"
             }
             binding.tvConvertResult.text = result
         }
@@ -115,7 +113,7 @@ class MainActivity : AppCompatActivity() {
                 contentResolver.openInputStream(uri)?.use { stream ->
                     fileData = stream.readBytes()
                     fileName = uri.lastPathSegment ?: "unknown"
-                    binding.tvSelectedFile.text = "✓ $fileName (${fileData?.size} bytes)"
+                    binding.tvSelectedFile.text = "OK: $fileName (${fileData?.size} bytes)"
                     binding.btnViewFile.isEnabled = true
                     binding.btnConvert.isEnabled = true
                     binding.cardConvert.visibility = View.GONE

@@ -1,23 +1,11 @@
 package com.wifianalyzer.tools
 
 import android.content.Context
-import kotlinx.coroutines.*
 import java.io.*
 
 class ToolExecutor(private val context: Context) {
 
-    data class ToolResult(
-        val exitCode: Int,
-        val output: String,
-        val error: String,
-        val duration: Long
-    )
-
-    interface OutputCallback {
-        fun onOutput(line: String)
-        fun onError(line: String)
-        fun onComplete(exitCode: Int)
-    }
+    data class ToolResult(val exitCode: Int, val output: String, val error: String, val duration: Long)
 
     fun extractBinary(assetName: String, targetName: String): String? {
         val toolsDir = File(context.filesDir, "tools")
@@ -31,66 +19,44 @@ class ToolExecutor(private val context: Context) {
             }
             targetFile.setReadable(true, false)
             targetFile.setExecutable(true, false)
-            targetFile.setWritable(true, false)
-            try {
-                Runtime.getRuntime().exec(arrayOf("chmod", "755", targetFile.absolutePath)).waitFor()
-            } catch (_: Exception) {}
+            try { Runtime.getRuntime().exec(arrayOf("chmod", "755", targetFile.absolutePath)).waitFor() } catch (_: Exception) {}
             targetFile.absolutePath
         } catch (e: Exception) {
             null
         }
     }
 
-    fun runTool(binaryPath: String, args: List<String>, callback: OutputCallback? = null): ToolResult {
+    fun runTool(binaryPath: String, args: List<String>): ToolResult {
         val startTime = System.currentTimeMillis()
         val output = StringBuilder()
-        val error = StringBuilder()
-        try {
-            Runtime.getRuntime().exec(arrayOf("chmod", "755", binaryPath)).waitFor()
-        } catch (_: Exception) {}
+        try { Runtime.getRuntime().exec(arrayOf("chmod", "755", binaryPath)).waitFor() } catch (_: Exception) {}
         return try {
-            val cmd = "$binaryPath ${args.joinToString(" ") { "\"$it\" }}"
-            val pb = ProcessBuilder(listOf("sh", "-c", cmd))
+            val allArgs = ArrayList<String>()
+            allArgs.add(binaryPath)
+            allArgs.addAll(args)
+            val pb = ProcessBuilder(allArgs)
             pb.directory(context.filesDir)
-            pb.environment()["PATH"] = "${context.filesDir}/tools:/system/bin:/system/xbin"
+            pb.environment()["PATH"] = context.filesDir.absolutePath + "/tools:/system/bin:/system/xbin"
             pb.redirectErrorStream(true)
             val process = pb.start()
-            val outputThread = Thread {
-                try {
-                    BufferedReader(InputStreamReader(process.inputStream)).use { r ->
-                        var line: String?
-                        while (r.readLine().also { line = it } != null) {
-                            val l = line ?: continue
-                            output.appendLine(l)
-                            callback?.onOutput(l)
-                        }
-                    }
-                } catch (_: Exception) {}
+            BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                var line: String? = reader.readLine()
+                while (line != null) {
+                    output.appendLine(line)
+                    line = reader.readLine()
+                }
             }
-            outputThread.start()
             val exitCode = process.waitFor()
-            outputThread.join(10000)
-            callback?.onComplete(exitCode)
             val duration = System.currentTimeMillis() - startTime
-            ToolResult(exitCode, output.toString(), error.toString(), duration)
+            ToolResult(exitCode, output.toString(), "", duration)
         } catch (e: Exception) {
             val duration = System.currentTimeMillis() - startTime
             ToolResult(-1, "", e.message ?: "Unknown error", duration)
         }
     }
 
-    suspend fun runToolAsync(binaryPath: String, args: List<String>, callback: OutputCallback? = null): ToolResult = withContext(Dispatchers.IO) {
-        runTool(binaryPath, args, callback)
-    }
-
     fun isToolAvailable(toolName: String): Boolean {
-        val paths = listOf(
-            context.filesDir.absolutePath + "/tools/$toolName",
-            "/data/data/com.termux/files/usr/bin/$toolName",
-            "/system/bin/$toolName",
-            "/system/xbin/$toolName"
-        )
-        return paths.any { File(it).exists() }
+        return getToolPath(toolName) != null
     }
 
     fun getToolPath(toolName: String): String? {
