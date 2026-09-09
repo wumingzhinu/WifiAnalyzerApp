@@ -49,31 +49,44 @@ class ToolOutputFragment : Fragment() {
         append("大小: ${file.length()} bytes")
         append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 
-        val aircrack = executor.getToolPath("aircrack-ng")
-        val hcx = executor.getToolPath("hcxpcapngtool")
+        progress.visibility = View.VISIBLE
 
-        if (aircrack == null && hcx == null) {
-            append("⚠ 未检测到工具\n")
-            append("请在 Termux 安装:")
-            append("  pkg install aircrack-ng hcxtools")
+        val hcxpcapngtool = executor.getToolPath("hcxpcapngtool")
+        val hcxpmktool = executor.getToolPath("hcxpmktool")
+        val hcxhashtool = executor.getToolPath("hcxhashtool")
+        val hcxpsktool = executor.getToolPath("hcxpsktool")
+
+        if (hcxpcapngtool == null) {
+            append("⚠ hcxtools 未安装")
+            append("工具目录: ${context?.filesDir}/tools/")
+            append("请将 hcxpcapngtool 放到该目录")
+            progress.visibility = View.GONE
             return
         }
 
-        progress.visibility = View.VISIBLE
-
-        if (aircrack != null) {
-            runTool(aircrack, listOf("-a", "2", file.absolutePath), "aircrack-ng")
-        }
-
-        if (hcx != null) {
-            runTool(hcx, listOf(file.absolutePath), "hcxpcapngtool")
+        append("▶ hcxpcapngtool (握手包分析)\n")
+        runTool(hcxpcapngtool, listOf(file.absolutePath), "hcxpcapngtool") {
+            if (hcxpmktool != null) {
+                append("\n▶ hcxpmktool (PMKID分析)\n")
+                runTool(hcxpmktool, listOf("-i", file.absolutePath), "hcxpmktool") {
+                    if (hcxpsktool != null) {
+                        append("\n▶ hcxpsktool (PSK分析)\n")
+                        runTool(hcxpsktool, listOf("-i", file.absolutePath), "hcxpsktool") {
+                            progress.visibility = View.GONE
+                            append("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                            append("分析完成")
+                        }
+                    } else {
+                        progress.visibility = View.GONE
+                    }
+                }
+            } else {
+                progress.visibility = View.GONE
+            }
         }
     }
 
-    private fun runTool(binary: String, args: List<String>, name: String) {
-        append("▶ $name ${args.dropLast(1).joinToString(" ")}")
-        append("  文件: ${args.lastOrNull() ?: ""}\n")
-
+    private fun runTool(binary: String, args: List<String>, name: String, onComplete: () -> Unit = {}) {
         lifecycleScope.launch {
             executor.runToolAsync(binary, args, object : ToolExecutor.OutputCallback {
                 override fun onOutput(line: String) { append(line) }
@@ -81,7 +94,7 @@ class ToolOutputFragment : Fragment() {
                 override fun onComplete(exitCode: Int) {
                     append("\n───────────────────────")
                     append("$name 退出码: $exitCode\n")
-                    progress.visibility = View.GONE
+                    activity?.runOnUiThread { onComplete() }
                 }
             })
         }
