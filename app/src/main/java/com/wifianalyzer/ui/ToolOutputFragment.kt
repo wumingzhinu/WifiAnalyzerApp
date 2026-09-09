@@ -11,7 +11,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.wifianalyzer.R
 import com.wifianalyzer.tools.ToolExecutor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class ToolOutputFragment : Fragment() {
@@ -27,7 +29,6 @@ class ToolOutputFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         executor = ToolExecutor(requireContext())
         tvOutput = view.findViewById(R.id.tvToolOutput)
         scrollView = view.findViewById(R.id.toolScrollView)
@@ -36,67 +37,43 @@ class ToolOutputFragment : Fragment() {
         val filePath = arguments?.getString("file_path") ?: return
         val file = File(filePath)
         if (!file.exists()) {
-            append("文件不存在: $filePath")
+            append("File not found: $filePath")
             return
         }
-
         runAllTools(file)
     }
 
     private fun runAllTools(file: File) {
-        append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        append("文件: ${file.name}")
-        append("大小: ${file.length()} bytes")
-        append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-
+        append("File: ${file.name} (${file.length()} bytes)\n")
         progress.visibility = View.VISIBLE
 
-        val hcxpcapngtool = executor.getToolPath("hcxpcapngtool")
-        val hcxpmktool = executor.getToolPath("hcxpmktool")
-        val hcxhashtool = executor.getToolPath("hcxhashtool")
-        val hcxpsktool = executor.getToolPath("hcxpsktool")
-
-        if (hcxpcapngtool == null) {
-            append("⚠ hcxtools 未安装")
-            append("工具目录: ${context?.filesDir}/tools/")
-            append("请将 hcxpcapngtool 放到该目录")
-            progress.visibility = View.GONE
-            return
-        }
-
-        append("▶ hcxpcapngtool (握手包分析)\n")
-        runTool(hcxpcapngtool, listOf(file.absolutePath), "hcxpcapngtool") {
-            if (hcxpmktool != null) {
-                append("\n▶ hcxpmktool (PMKID分析)\n")
-                runTool(hcxpmktool, listOf("-i", file.absolutePath), "hcxpmktool") {
-                    if (hcxpsktool != null) {
-                        append("\n▶ hcxpsktool (PSK分析)\n")
-                        runTool(hcxpsktool, listOf("-i", file.absolutePath), "hcxpsktool") {
-                            progress.visibility = View.GONE
-                            append("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                            append("分析完成")
-                        }
-                    } else {
-                        progress.visibility = View.GONE
-                    }
-                }
-            } else {
-                progress.visibility = View.GONE
-            }
-        }
-    }
-
-    private fun runTool(binary: String, args: List<String>, name: String, onComplete: () -> Unit = {}) {
         lifecycleScope.launch {
-            executor.runToolAsync(binary, args, object : ToolExecutor.OutputCallback {
-                override fun onOutput(line: String) { append(line) }
-                override fun onError(line: String) { append(line) }
-                override fun onComplete(exitCode: Int) {
-                    append("\n───────────────────────")
-                    append("$name 退出码: $exitCode\n")
-                    activity?.runOnUiThread { onComplete() }
-                }
-            })
+            val hcxpcapngtool = executor.getToolPath("hcxpcapngtool")
+            if (hcxpcapngtool != null) {
+                append(">>> hcxpcapngtool <<<\n")
+                val r1 = withContext(Dispatchers.IO) { executor.runTool(hcxpcapngtool, listOf(file.absolutePath)) }
+                append(r1.output)
+                append("exit: ${r1.exitCode}\n")
+            }
+
+            val hcxpmktool = executor.getToolPath("hcxpmktool")
+            if (hcxpmktool != null) {
+                append("\n>>> hcxpmktool <<<\n")
+                val r2 = withContext(Dispatchers.IO) { executor.runTool(hcxpmktool, listOf("-i", file.absolutePath)) }
+                append(r2.output)
+                append("exit: ${r2.exitCode}\n")
+            }
+
+            val hcxpsktool = executor.getToolPath("hcxpsktool")
+            if (hcxpsktool != null) {
+                append("\n>>> hcxpsktool <<<\n")
+                val r3 = withContext(Dispatchers.IO) { executor.runTool(hcxpsktool, listOf("-i", file.absolutePath)) }
+                append(r3.output)
+                append("exit: ${r3.exitCode}\n")
+            }
+
+            progress.visibility = View.GONE
+            append("\nDone")
         }
     }
 

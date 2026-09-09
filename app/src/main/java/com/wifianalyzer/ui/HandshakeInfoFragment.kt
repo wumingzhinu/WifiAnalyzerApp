@@ -76,14 +76,13 @@ class HandshakeInfoFragment : Fragment() {
         append("▶ hcxpcapngtool ${file.name}\n")
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
-                executor?.runTool(binaryPath, listOf(file.absolutePath), object : ToolExecutor.OutputCallback {
-                    override fun onOutput(line: String) { append(line) }
-                    override fun onError(line: String) { append(line) }
-                    override fun onComplete(exitCode: Int) {}
-                })
+                executor?.runTool(binaryPath, listOf(file.absolutePath))
             }
-            append("\n───────────────────────")
-            append("退出码: ${result?.exitCode ?: -1}")
+            if (result != null) {
+                append(result.output)
+                append("\n───────────────────────")
+                append("退出码: ${result.exitCode}")
+            }
             progress?.visibility = View.GONE
         }
     }
