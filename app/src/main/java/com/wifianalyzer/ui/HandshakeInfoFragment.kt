@@ -11,15 +11,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.wifianalyzer.R
 import com.wifianalyzer.tools.ToolExecutor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class HandshakeInfoFragment : Fragment() {
 
-    private lateinit var executor: ToolExecutor
-    private lateinit var tvOutput: TextView
-    private lateinit var scrollView: ScrollView
-    private lateinit var progress: ProgressBar
+    private var tvOutput: TextView? = null
+    private var scrollView: ScrollView? = null
+    private var progress: ProgressBar? = null
+    private var executor: ToolExecutor? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_handshake_info, container, false)
@@ -27,11 +29,10 @@ class HandshakeInfoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        executor = ToolExecutor(requireContext())
         tvOutput = view.findViewById(R.id.tvHandshakeOutput)
         scrollView = view.findViewById(R.id.handshakeScrollView)
         progress = view.findViewById(R.id.handshakeProgress)
+        executor = ToolExecutor(requireContext())
 
         val filePath = arguments?.getString("file_path") ?: return
         val file = File(filePath)
@@ -39,7 +40,6 @@ class HandshakeInfoFragment : Fragment() {
             append("文件不存在: $filePath")
             return
         }
-
         runHcxpcapngtool(file)
     }
 
@@ -49,35 +49,58 @@ class HandshakeInfoFragment : Fragment() {
         append("大小: ${file.length()} bytes")
         append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 
-        progress.visibility = View.VISIBLE
+        progress?.visibility = View.VISIBLE
 
-        val hcxpcapngtool = executor.getToolPath("hcxpcapngtool")
-        if (hcxpcapngtool == null) {
+        val hcxPath = executor?.getToolPath("hcxpcapngtool")
+        if (hcxPath == null) {
             append("⚠ hcxpcapngtool 未找到")
-            append("路径: ${context?.filesDir}/tools/hcxpcapngtool")
-            progress.visibility = View.GONE
+            append("正在尝试释放工具...")
+            lifecycleScope.launch {
+                val extracted = withContext(Dispatchers.IO) {
+                    executor?.extractBinary("hcxpcapngtool", "hcxpcapngtool")
+                }
+                if (extracted != null) {
+                    append("✓ 工具已释放: $extracted\n")
+                    runTool(extracted, file)
+                } else {
+                    append("✗ 工具释放失败")
+                    progress?.visibility = View.GONE
+                }
+            }
             return
         }
+        runTool(hcxPath, file)
+    }
 
+    private fun runTool(binaryPath: String, file: File) {
         append("▶ hcxpcapngtool ${file.name}\n")
         lifecycleScope.launch {
-            executor.runToolAsync(hcxpcapngtool, listOf(file.absolutePath), object : ToolExecutor.OutputCallback {
-                override fun onOutput(line: String) { append(line) }
-                override fun onError(line: String) { append(line) }
-                override fun onComplete(exitCode: Int) {
-                    append("\n───────────────────────")
-                    append("退出码: $exitCode")
-                    progress.visibility = View.GONE
-                }
-            })
+            val result = withContext(Dispatchers.IO) {
+                executor?.runTool(binaryPath, listOf(file.absolutePath), object : ToolExecutor.OutputCallback {
+                    override fun onOutput(line: String) { append(line) }
+                    override fun onError(line: String) { append(line) }
+                    override fun onComplete(exitCode: Int) {}
+                })
+            }
+            append("\n───────────────────────")
+            append("退出码: ${result?.exitCode ?: -1}")
+            progress?.visibility = View.GONE
         }
     }
 
     private fun append(text: String) {
+        if (activity == null || !isAdded) return
         activity?.runOnUiThread {
-            tvOutput.append(text + "\n")
-            scrollView.post { scrollView.fullScroll(View.FOCUS_DOWN) }
+            tvOutput?.append(text + "\n")
+            scrollView?.post { scrollView?.fullScroll(View.FOCUS_DOWN) }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        tvOutput = null
+        scrollView = null
+        progress = null
     }
 
     companion object {
