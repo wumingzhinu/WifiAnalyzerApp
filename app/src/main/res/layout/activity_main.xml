@@ -16,4 +16,7 @@
             android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1" android:layout_marginStart="8dp" android:text="转换" android:enabled="false"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
     </LinearLayout>
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnTools"
+        android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="12dp" android:text="安全工具 (aircrack-ng等)"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:textColor="#FFFF5722" android:strokeColor="#FFFF5722"/>
 </LinearLayout>
