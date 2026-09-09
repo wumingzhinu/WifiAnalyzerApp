@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="#FF0D1117" android:padding="16dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="有损转换" android:textSize="18sp" android:textColor="#FFFF5722" android:textStyle="bold" android:layout_marginBottom="16dp"/>
+    <TextView android:id="@+id/tvSourceFormat" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:background="#FF21262D" android:textColor="#FFE6EDF3" android:layout_marginBottom="16dp"/>
+    <Spinner android:id="@+id/spinnerTargetFormat" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginBottom="16dp"/>
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnConvert" android:layout_width="match_parent" android:layout_height="56dp" android:text="开始转换"/>
+    <com.google.android.material.card.MaterialCardView android:id="@+id/cardResult" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:visibility="gone">
+        <TextView android:id="@+id/tvConvertResult" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp"/>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

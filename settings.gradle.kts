@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "WifiAnalyzer"
-include ':app'
+include(":app")
