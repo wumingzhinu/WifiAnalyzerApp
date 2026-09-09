@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:text="Handshake Analyzer"
             android:textSize="12sp"
-            android:textColor="#FF8B949E"
+            android:textColor="#FFC9D1D9"
             android:layout_marginTop="4dp" />
     </LinearLayout>
 
@@ -64,7 +64,7 @@
                     android:layout_height="wrap_content"
                     android:text="选择抓包文件"
                     android:textSize="14sp"
-                    android:textColor="#FF8B949E"
+                    android:textColor="#FFC9D1D9"
                     android:layout_marginBottom="12dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -80,9 +80,9 @@
                     android:id="@+id/tvSelectedFile"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="支持 pcap / cap / pcapng / hccapx / pmkid / 22000"
-                    android:textSize="11sp"
-                    android:textColor="#FF484F58"
+                    android:text="支持 pcap / cap / pcapng / hccapx / hccap / 16800 / 22000 / wkp"
+                    android:textSize="12sp"
+                    android:textColor="#FFFFFFFF"
                     android:gravity="center"
                     android:layout_marginTop="12dp" />
             </LinearLayout>
@@ -141,7 +141,7 @@
                     android:layout_height="wrap_content"
                     android:text="转换格式"
                     android:textSize="14sp"
-                    android:textColor="#FF8B949E"
+                    android:textColor="#FFC9D1D9"
                     android:layout_marginBottom="12dp" />
 
                 <Spinner
